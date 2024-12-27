@@ -1,38 +1,11 @@
-# sv
+# Grid Cannon
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A [**WIP**] static svelte 5 implementation of https://www.pentadact.com/2019-08-20-gridcannon-a-single-player-game-with-regular-playing-cards/ in order to force my brain into learning some webdev
 
-## Creating a project
 
-If you're seeing this, you've probably already done this step. Congrats!
+---
+Rendering and event handling in ```/components```
 
-```bash
-# create a new project in the current directory
-npx sv create
+Game logic and state manipulation in ```/game```
 
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Game state management in ```/stores```
