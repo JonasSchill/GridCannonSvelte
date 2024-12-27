@@ -9,3 +9,5 @@ Rendering and event handling in ```/components```
 Game logic and state manipulation in ```/game```
 
 Game state management in ```/stores```
+
+:)
