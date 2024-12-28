@@ -1,2 +1,16 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script>
+	import CardComponent from '$lib/components/CardComponent.svelte';
+	import { Ranks, Suits } from '$lib/game/types';
+</script>
+
+<CardComponent card={{
+	suit: Suits.HEART,
+	rank: Ranks.SIX,
+	isPlayable: false
+}} />
+
+<CardComponent card={{
+	suit: Suits.SPADE,
+	rank: Ranks.NINE,
+	isPlayable: true
+}} />
