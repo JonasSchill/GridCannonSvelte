@@ -7,6 +7,7 @@ type Card = {
 	isHovered: boolean;
 	isDragging: boolean;
 	isFaceUp: boolean;
+	isPlayable: boolean;
 }
 
 type CardStack = {
@@ -20,7 +21,7 @@ type GameState = {
 	draggingCard: Card | null;
 }
 
-enum StackTypes {
+export enum StackTypes {
 	DRAW = 'draw',
 	ROYAL = 'royal',
 	CENTER = 'CENTER',
@@ -29,14 +30,14 @@ enum StackTypes {
 	JOKERS = 'jokers'
 }
 
-enum Suits {
-	HEART = 'heart',
-	SPADE = 'spade',
-	CLUB = 'club',
-	DIAMOND = 'diamond',
+export enum Suits {
+	HEART = '♥',
+	SPADE = '♠',
+	CLUB = '♣',
+	DIAMOND = '♦',
 }
 
-enum Ranks {
+export enum Ranks {
 	ACE = 'ace',
 	TWO = 'two',
 	THREE = 'three',
