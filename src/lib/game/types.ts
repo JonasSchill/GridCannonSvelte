@@ -1,22 +1,20 @@
-type Card = {
+export type Card = {
 	id: string;
 	suit: Suits
 	value: number;
 	rank: Ranks;
-	isVisible: boolean;
-	isHovered: boolean;
 	isDragging: boolean;
 	isFaceUp: boolean;
 	isPlayable: boolean;
 }
 
-type CardStack = {
+export type CardStack = {
 	id: string;
 	cards: Card[];
 	type: StackTypes;
 }
 
-type GameState = {
+export type GameState = {
 	stacks: CardStack[];
 	draggingCard: Card | null;
 }
@@ -24,10 +22,11 @@ type GameState = {
 export enum StackTypes {
 	DRAW = 'draw',
 	ROYAL = 'royal',
-	CENTER = 'CENTER',
+	CENTER = 'center',
 	BORDER = 'border',
 	ACES = 'aces',
-	JOKERS = 'jokers'
+	JOKERS = 'jokers',
+	NULL = 'null'
 }
 
 export enum Suits {

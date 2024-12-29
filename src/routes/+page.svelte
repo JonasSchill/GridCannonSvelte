@@ -1,28 +1,13 @@
 <script>
-	import CardComponent from '$lib/components/CardComponent.svelte';
-	import { Ranks, StackTypes, Suits } from '$lib/game/types';
-	import CardStackComponent from '$lib/components/CardStackComponent.svelte';
+import { setup } from '$lib/game/setup';
+import GameBoardComponent from '$lib/components/GameBoardComponent.svelte';
+
+setup();
+const isSetup = true;
 </script>
 
-<CardStackComponent cardStack={{
-	id: "s1",
-	type: StackTypes.CENTER,
-	cards: [
-		{
-			suit: Suits.HEART,
-			rank: Ranks.SIX,
-			isPlayable: false
-		},
-		{
-			suit: Suits.SPADE,
-			rank: Ranks.NINE,
-			isPlayable: false
-		}
-	]
-}} />
 
-<CardStackComponent cardStack={{
-	id: "s2",
-	type: StackTypes.DRAW,
-	cards: []
-}} />
+{#if isSetup}
+		<GameBoardComponent />
+{/if}
+
