@@ -1,0 +1,59 @@
+<script lang="ts">
+	import CardComponent from '$lib/components/CardComponent.svelte';
+	import { config } from '$lib/stores/config.svelte';
+
+	let { cardStack } = $props();
+
+	let isEmpty = $derived(cardStack.cards.length === 0);
+	let topCard = $derived(isEmpty ? null : cardStack.cards[cardStack.cards.length - 1]);
+
+	const stackStyle = $derived(`
+		--width: ${config.cardSize}px;
+		--height: ${config.cardSize * config.cardSizeRatio}px;
+	`);
+</script>
+
+<div class="card-stack"
+		 aria-label={cardStack.type || (cardStack.cards.length ? 'Card stack' : 'Empty card stack')}
+		 style={stackStyle}
+>
+	{#if !isEmpty}
+		<CardComponent card={topCard} />
+	{:else}
+		<div class="empty-card-placeholder">
+			{#if cardStack.type}
+				<span class="stack-label">{cardStack.type}</span>
+			{/if}
+		</div>
+	{/if}
+</div>
+
+
+<style>
+    .card-stack {
+        position: relative;
+        /* Use the same dimensions as your CardComponent */
+        width: var(--width);
+        height: var(--height);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .empty-card-placeholder {
+        width: 100%;
+        height: 100%;
+        border: 2px dashed #ccc;
+        border-radius: var(--card-border-radius, 8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stack-label {
+        color: #666;
+        font-size: 0.9em;
+        text-align: center;
+        padding: 0.5em;
+    }
+</style>

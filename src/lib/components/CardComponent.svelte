@@ -5,9 +5,9 @@
 	let { card } = $props();
 
 	let cardDimensions = $derived({
+		padding: config.cardSize * config.cardPaddingRatio,
 		width: config.cardSize,
 		height: config.cardSize * config.cardSizeRatio,
-		padding: config.cardSize * config.cardPaddingRatio,
 		borderRadius: config.cardSize * config.cardBorderRadiusRatio
 	});
 
@@ -16,7 +16,7 @@
     --card-height: ${cardDimensions.height}px;
     --card-radius: ${cardDimensions.borderRadius}px;
     --card-padding: ${cardDimensions.padding}px;
-	`)
+	`);
 
 	const isRed = $derived(card.suit === Suits.HEART || card.suit === Suits.DIAMOND);
 </script>

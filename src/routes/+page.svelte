@@ -1,16 +1,28 @@
 <script>
 	import CardComponent from '$lib/components/CardComponent.svelte';
-	import { Ranks, Suits } from '$lib/game/types';
+	import { Ranks, StackTypes, Suits } from '$lib/game/types';
+	import CardStackComponent from '$lib/components/CardStackComponent.svelte';
 </script>
 
-<CardComponent card={{
-	suit: Suits.HEART,
-	rank: Ranks.SIX,
-	isPlayable: false
+<CardStackComponent cardStack={{
+	id: "s1",
+	type: StackTypes.CENTER,
+	cards: [
+		{
+			suit: Suits.HEART,
+			rank: Ranks.SIX,
+			isPlayable: false
+		},
+		{
+			suit: Suits.SPADE,
+			rank: Ranks.NINE,
+			isPlayable: false
+		}
+	]
 }} />
 
-<CardComponent card={{
-	suit: Suits.SPADE,
-	rank: Ranks.NINE,
-	isPlayable: true
+<CardStackComponent cardStack={{
+	id: "s2",
+	type: StackTypes.DRAW,
+	cards: []
 }} />
