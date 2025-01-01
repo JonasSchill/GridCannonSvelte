@@ -4,14 +4,13 @@
 	import { gameState } from '$lib/stores/gamestate.svelte';
 	import { config } from '$lib/stores/config.svelte';
 	import { StackTypes } from '$lib/game/types';
-	import { toPixels } from '$lib/game/utils';
 
-	let columns = 5;
+	const columns = 5;
 </script>
 
 <div
 	class="game-board"
-	style:grid-template-columns={`repeat(${columns}, ${toPixels(config.cardSize)})`}
+	style:grid-template-columns={`repeat(${columns}, ${config.cardSize}px)`}
 	style:gap={config.gridGap}
 >
 	{#each gameState.stacks as cardStack}
@@ -28,7 +27,6 @@
         display: grid;
         justify-content: center;
         width: fit-content;
-        margin: 0 auto;
     }
 
     .card-cell {
