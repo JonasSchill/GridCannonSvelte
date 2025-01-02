@@ -81,8 +81,27 @@
         color: #D40000;
     }
 
-		.card.royal {
-				background-color: lightpink;
+    .card.royal {
+        background-color: #FFE4E1;
+        border-color: black;
+        border-width: 2px;
+    }
+
+		.card.playable {
+				border-color: red;
+				border-width: 2px;
+		}
+
+    .card.selected {
+        border-color: blue;
+        border-width: 3px;
+        transform: translateY(-10px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+    }
+
+		.card.facedown {
+				background-color: lightgray;
 		}
 
     /* Different hover effects based on playability */
@@ -96,22 +115,6 @@
         cursor: pointer;
     }
 
-		.card.playable {
-				border-color: red;
-				border-width: 2px;
-		}
-
-		.card.facedown {
-				background-color: lightgray;
-		}
-
-		.card.selected {
-				border-color: blue;
-				border-width: 3px;
-        transform: translateY(-10px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-				cursor: pointer;
-		}
 
     /*.card.selected:hover {
         cursor: pointer;
