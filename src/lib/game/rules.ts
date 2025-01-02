@@ -1,5 +1,5 @@
 import { gameState } from '$lib/stores/gamestate.svelte';
-import { type CardStack, StackTypes } from '$lib/game/types';
+import { type CardStack, Ranks, StackTypes, Suits } from '$lib/game/types';
 import { isRoyal } from '$lib/game/utils';
 
 export function clickCard(cardStack: CardStack) {
@@ -19,7 +19,7 @@ export function clickCard(cardStack: CardStack) {
 
 	// clicked card is selected already so unselect it
 	if (card.isSelected) {
-		card.isPlayable = true;
+		//card.isPlayable = true;
 		deselect();
 		updatePlayable();
 		return;
@@ -29,7 +29,7 @@ export function clickCard(cardStack: CardStack) {
 	// select clicked card
 	if (card.isPlayable && gameState.selectedCard == null) {
 		card.isSelected = true;
-		card.isPlayable = false;
+		//card.isPlayable = false;
 		card.isFaceUp = true;
 		gameState.selectedCard = card;
 		gameState.selectedSource = cardStack;
@@ -61,12 +61,16 @@ const updatePlayable = () => {
 		if (gameState.royals.cards.length > 0 && gameState.draw.cards.length > 0) {
 			// if there are royals make the top draw card not playable
 			gameState.draw.cards[gameState.draw.cards.length - 1].isPlayable = false;
+			gameState.royals.cards[gameState.royals.cards.length - 1].isPlayable = true;
 		} else if (gameState.draw.cards.length > 0) {
 			// if there are no royals make the top draw card playable
 			gameState.draw.cards[gameState.draw.cards.length - 1].isPlayable = true;
 		}
+		//ToDo: MAKE JOKERS PLAYABLE IF ANY
+		//ToDo: MAKE ACES PLAYABLE IF ANY
 		makeAllGridStacksAndCardsUnplayable();
 	} else {
+		gameState.selectedCard.isPlayable = false;
 		if (isRoyal(gameState.selectedCard)) {
 			// test code make all border slots playable
 			for (let i = 1; i < gameState.stacks.length; i++) {
@@ -80,6 +84,23 @@ const updatePlayable = () => {
 					}
 				}
 			}
+			makeJokerStackUnplayable();
+			makeAceStackUnplayable();
+			makeCenterStacksAndCardsUnplayable();
+		} else if (gameState.selectedCard.rank == Ranks.JOKER) {
+			gameState.jokers.validDropLocation = true;
+			if (gameState.jokers.cards.length > 0) {
+				 gameState.jokers.cards[gameState.jokers.cards.length - 1].isPlayable = true;
+			}
+			makeAceStackUnplayable();
+			makeAllGridStacksAndCardsUnplayable();
+		} else if (gameState.selectedCard.rank == Ranks.ACE) {
+			gameState.aces.validDropLocation = true;
+			if (gameState.aces.cards.length > 0) {
+				 gameState.aces.cards[gameState.aces.cards.length - 1].isPlayable = true;
+			}
+			makeJokerStackUnplayable();
+			makeAllGridStacksAndCardsUnplayable();
 		} else {
 			// test center grid code playable validations
 			for (let i = 1; i < gameState.stacks.length; i++) {
@@ -96,6 +117,8 @@ const updatePlayable = () => {
 					}
 				}
 			}
+			makeJokerStackUnplayable();
+			makeAceStackUnplayable();
 		}
 	}
 };
@@ -110,5 +133,31 @@ const makeAllGridStacksAndCardsUnplayable = () => {
 				stack.cards[stack.cards.length - 1].isPlayable = false;
 			}
 		}
+	}
+}
+
+const makeCenterStacksAndCardsUnplayable = () => {
+	for (let i = 1; i < gameState.stacks.length; i++) {
+		const stack = gameState.stacks[i];
+		if (stack.type === StackTypes.CENTER) {
+			stack.validDropLocation = false;
+			if (stack.cards.length !== 0) {
+				stack.cards[stack.cards.length - 1].isPlayable = false;
+			}
+		}
+	}
+}
+
+const makeJokerStackUnplayable = () => {
+	gameState.jokers.validDropLocation = false;
+	if (gameState.jokers.cards.length > 0) {
+		 gameState.jokers.cards[gameState.jokers.cards.length - 1].isPlayable = false;
+	}
+}
+
+const makeAceStackUnplayable = () => {
+	gameState.aces.validDropLocation = false;
+	if (gameState.aces.cards.length > 0) {
+		 gameState.aces.cards[gameState.aces.cards.length - 1].isPlayable = false;
 	}
 }
