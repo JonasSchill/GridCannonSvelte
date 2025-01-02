@@ -19,6 +19,7 @@
 	`);
 
 	const isRed = $derived(card.suit === Suits.HEART || card.suit === Suits.DIAMOND);
+	const notJoker = $derived(card.suit !== Suits.JOKER);
 </script>
 
 <div
@@ -29,16 +30,22 @@
 >
 	<div class="card-corner top-left">
 		<div class="rank">{card.rank}</div>
-		<div class="suit">{card.suit}</div>
+		{#if notJoker}
+			<div class="suit">{card.suit}</div>
+		{/if}
 	</div>
 
-	<div class="card-center suit">
-		{card.suit}
-	</div>
+	{#if notJoker}
+		<div class="card-center suit">
+			{card.suit}
+		</div>
+	{/if}
 
 	<div class="card-corner bottom-right">
 		<div class="rank">{card.rank}</div>
-		<div class="suit">{card.suit}</div>
+		{#if notJoker}
+			<div class="suit">{card.suit}</div>
+		{/if}
 	</div>
 </div>
 

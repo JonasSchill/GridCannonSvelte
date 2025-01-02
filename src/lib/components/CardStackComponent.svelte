@@ -1,11 +1,13 @@
 <script lang="ts">
 	import CardComponent from '$lib/components/CardComponent.svelte';
 	import { config } from '$lib/stores/config.svelte';
+	import { StackTypes } from '$lib/game/types';
 
 	let { cardStack } = $props();
 
 	let isEmpty = $derived(cardStack.cards.length === 0);
 	let topCard = $derived(isEmpty ? null : cardStack.cards[cardStack.cards.length - 1]);
+	let specialStack = $derived(cardStack.type !== StackTypes.CENTER && cardStack.type !== StackTypes.BORDER);
 
 	const stackStyle = $derived(`
 		--width: ${config.cardSize}px;
@@ -14,11 +16,12 @@
 </script>
 
 <div class="card-stack"
+		 class:noncenter={specialStack}
 		 aria-label={cardStack.type || (cardStack.cards.length ? 'Card stack' : 'Empty card stack')}
 		 style={stackStyle}
 >
 	{#if !isEmpty}
-		<CardComponent card={topCard} />
+			<CardComponent card={topCard} />
 	{:else}
 		<div class="empty-card-placeholder">
 			{#if cardStack.type}
@@ -38,7 +41,14 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        box-sizing: content-box;
     }
+
+		.noncenter {
+				padding: 10px;
+				border-radius: 10px;
+        background-color: #85A947;
+		}
 
     .empty-card-placeholder {
         width: 100%;

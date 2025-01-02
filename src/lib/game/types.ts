@@ -16,12 +16,16 @@ export type CardStack = {
 
 export type GameState = {
 	stacks: CardStack[];
+	draw: CardStack;
+	jokers: CardStack;
+	aces: CardStack;
+	royals: CardStack;
 	draggingCard: Card | null;
 }
 
 export enum StackTypes {
 	DRAW = 'draw',
-	ROYAL = 'royal',
+	ROYALS = 'royals',
 	CENTER = 'center',
 	BORDER = 'border',
 	ACES = 'aces',
@@ -34,6 +38,7 @@ export enum Suits {
 	SPADE = '♠',
 	CLUB = '♣',
 	DIAMOND = '♦',
+	JOKER = 'joker',
 }
 
 export enum Ranks {

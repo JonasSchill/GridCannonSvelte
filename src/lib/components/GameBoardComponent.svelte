@@ -27,6 +27,10 @@
         display: grid;
         justify-content: center;
         width: fit-content;
+        background-color: #85A947;
+				box-sizing: content-box;
+				padding: 20px;
+				border-radius: 20px;
     }
 
     .card-cell {
