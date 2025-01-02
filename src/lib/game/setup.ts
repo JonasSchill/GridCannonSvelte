@@ -1,5 +1,6 @@
 import { type Card, Ranks, Suits } from '$lib/game/types';
 import { gameState } from '$lib/stores/gamestate.svelte';
+import { isRoyal } from '$lib/game/utils';
 
 export function setup() {
 	gameState.draw.cards = shuffleDeck(generateDeck());
@@ -12,17 +13,37 @@ const dealCards = () => {
 	while (gameState.draw.cards.length > 0) {
 		const card = gameState.draw.cards[gameState.draw.cards.length - 1];
 		if (card.rank === Ranks.JOKER) {
+			card.isFaceUp = true;
 			gameState.jokers.cards.push(gameState.draw.cards.pop()!);
 		} else if (card.rank === Ranks.ACE) {
+			card.isFaceUp = true;
 			gameState.aces.cards.push(gameState.draw.cards.pop()!);
-		} else if (card.rank === Ranks.JACK || card.rank === Ranks.QUEEN || card.rank === Ranks.KING) {
+		} else if (isRoyal(card)) {
+			card.isFaceUp = true;
+			card.isPlayable = true;
 			gameState.royals.cards.push(gameState.draw.cards.pop()!);
 		} else if (centerFilled < 9) {
 			const stack = gameState.stacks.find((s) => s.id == `C${centerFilled}`);
 			if (stack) {
+				card.isFaceUp = true;
 				stack.cards.push(gameState.draw.cards.pop()!);
 			}
 			centerFilled++;
+		} else if (gameState.royals.cards.length == 0) {
+			const tempStack: Card[] = [];
+			while (gameState.royals.cards.length == 0) {
+				const tempCard = gameState.draw.cards.pop();
+				if (tempCard) {
+					if (isRoyal(tempCard)) {
+						card.isFaceUp = true;
+						tempCard.isPlayable = true;
+						gameState.royals.cards.push(tempCard);
+					} else {
+						tempStack.push(tempCard);
+					}
+				}
+			}
+			gameState.draw.cards = tempStack.concat(gameState.draw.cards);
 		} else {
 			return;
 		}
@@ -43,7 +64,7 @@ const generateDeck = () => {
 						suit,
 						value: index + 1,
 						rank,
-						isDragging: false,
+						isSelected: false,
 						isFaceUp: false,
 						isPlayable: false
 					});
@@ -56,7 +77,7 @@ const generateDeck = () => {
 		suit: Suits.JOKER,
 		value: 0,
 		rank: Ranks.JOKER,
-		isDragging: false,
+		isSelected: false,
 		isFaceUp: false,
 		isPlayable: false
 	});
@@ -65,7 +86,7 @@ const generateDeck = () => {
 		suit: Suits.JOKER,
 		value: 0,
 		rank: Ranks.JOKER,
-		isDragging: false,
+		isSelected: false,
 		isFaceUp: false,
 		isPlayable: false
 	});

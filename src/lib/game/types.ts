@@ -3,7 +3,7 @@ export type Card = {
 	suit: Suits
 	value: number;
 	rank: Ranks;
-	isDragging: boolean;
+	isSelected: boolean;
 	isFaceUp: boolean;
 	isPlayable: boolean;
 }
@@ -12,6 +12,7 @@ export type CardStack = {
 	id: string;
 	cards: Card[];
 	type: StackTypes;
+	validDropLocation: boolean;
 }
 
 export type GameState = {
@@ -20,7 +21,8 @@ export type GameState = {
 	jokers: CardStack;
 	aces: CardStack;
 	royals: CardStack;
-	draggingCard: Card | null;
+	selectedCard: Card | null;
+	selectedSource: CardStack | null;
 }
 
 export enum StackTypes {

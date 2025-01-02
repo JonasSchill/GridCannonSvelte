@@ -2,6 +2,7 @@
 	import CardComponent from '$lib/components/CardComponent.svelte';
 	import { config } from '$lib/stores/config.svelte';
 	import { StackTypes } from '$lib/game/types';
+	import { clickCard } from '$lib/game/rules';
 
 	let { cardStack } = $props();
 
@@ -13,17 +14,28 @@
 		--width: ${config.cardSize}px;
 		--height: ${config.cardSize * config.cardSizeRatio}px;
 	`);
+
+	function onclick() {
+		clickCard(cardStack);
+	}
+
+	function topCardClicked() {
+		clickCard(cardStack);
+	}
 </script>
 
 <div class="card-stack"
 		 class:noncenter={specialStack}
+
 		 aria-label={cardStack.type || (cardStack.cards.length ? 'Card stack' : 'Empty card stack')}
 		 style={stackStyle}
 >
 	{#if !isEmpty}
-			<CardComponent card={topCard} />
+			<CardComponent card={topCard} {topCardClicked} />
 	{:else}
-		<div class="empty-card-placeholder">
+		<div class="empty-card-placeholder"
+				 class:valid={cardStack.validDropLocation}
+				 {onclick}>
 			{#if cardStack.type}
 				<span class="stack-label">{cardStack.type}</span>
 			{/if}
@@ -59,6 +71,11 @@
         align-items: center;
         justify-content: center;
     }
+
+		.empty-card-placeholder.valid {
+        border: 2px dashed red;
+        cursor: pointer;
+		}
 
     .stack-label {
         color: #666;

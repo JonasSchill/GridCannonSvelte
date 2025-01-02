@@ -18,12 +18,12 @@ const cardStyle = $derived(`--card-size: ${config.cardSize + 20}px;`);
 		<div class="game-container">
 			<div class="side-panel" style={cardStyle}>
 				<CardStackComponent cardStack={gameState.draw} />
-				<CardStackComponent cardStack={gameState.jokers} />
+				<CardStackComponent cardStack={gameState.royals} />
 			</div>
 			<GameBoardComponent />
 			<div class="side-panel" style={cardStyle}>
 				<CardStackComponent cardStack={gameState.aces} />
-				<CardStackComponent cardStack={gameState.royals} />
+				<CardStackComponent cardStack={gameState.jokers} />
 			</div>
 		</div>
 	</div>
