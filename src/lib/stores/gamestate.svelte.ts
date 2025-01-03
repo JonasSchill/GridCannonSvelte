@@ -1,8 +1,9 @@
 import { type GameState, StackTypes } from '$lib/game/types';
+import { setup } from '$lib/game/setup';
 
-export const gameState = $state<GameState>({
+const INITIAL_STATE: GameState = {
 	stacks: [
-		{ id: '-1', cards: [], type: StackTypes.NULL, validDropLocation: false},
+		{ id: '-1', cards: [], type: StackTypes.NULL, validDropLocation: false },
 		{ id: 'B0', cards: [], type: StackTypes.BORDER, validDropLocation: false },
 		{ id: 'B1', cards: [], type: StackTypes.BORDER, validDropLocation: false },
 		{ id: 'B2', cards: [], type: StackTypes.BORDER, validDropLocation: false },
@@ -26,7 +27,7 @@ export const gameState = $state<GameState>({
 		{ id: 'B9', cards: [], type: StackTypes.BORDER, validDropLocation: false },
 		{ id: 'B10', cards: [], type: StackTypes.BORDER, validDropLocation: false },
 		{ id: 'B11', cards: [], type: StackTypes.BORDER, validDropLocation: false },
-		{ id: '-1', cards: [], type: StackTypes.NULL, validDropLocation: false },
+		{ id: '-1', cards: [], type: StackTypes.NULL, validDropLocation: false }
 	],
 	draw: { id: 'draw', cards: [], type: StackTypes.DRAW, validDropLocation: false },
 	jokers: { id: 'jokers', cards: [], type: StackTypes.JOKERS, validDropLocation: false },
@@ -34,7 +35,47 @@ export const gameState = $state<GameState>({
 	royals: { id: 'royals', cards: [], type: StackTypes.ROYALS, validDropLocation: false },
 	selectedCard: null,
 	selectedSource: null
-});
+};
+
+export const gameState = $state<GameState>(structuredClone(INITIAL_STATE));
+
+export const resetGameState = () => {
+	gameState.stacks = structuredClone(INITIAL_STATE.stacks);
+	gameState.draw = structuredClone(INITIAL_STATE.draw);
+	gameState.jokers = structuredClone(INITIAL_STATE.jokers);
+	gameState.aces = structuredClone(INITIAL_STATE.aces);
+	gameState.royals = structuredClone(INITIAL_STATE.royals);
+	gameState.selectedCard = null;
+	gameState.selectedSource = null;
+	setup();
+};
+
+export const borderToCenterAdjacency: Record<string, string> = {
+	'B0': 'C0',
+	'B1': 'C1',
+	'B2': 'C2',
+	'B3': 'C0',
+	'B4': 'C2',
+	'B5': 'C3',
+	'B6': 'C5',
+	'B7': 'C6',
+	'B8': 'C8',
+	'B9': 'C6',
+	'B10': 'C7',
+	'B11': 'C8'
+}
+
+export const centerToBorderAdjacency: Record<string, string[]> = {
+	'C0': ['B0', 'B3'],
+	'C1': ['B1'],
+	'C2': ['B2', 'B4'],
+	'C3': ['B5'],
+	'C4': [],
+	'C5': ['B6'],
+	'C6': ['B7', 'B9'],
+	'C7': ['B10'],
+	'C8': ['B8', 'B11']
+}
 
 /*
     B00 B01 B02

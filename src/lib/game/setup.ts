@@ -1,6 +1,7 @@
 import { type Card, Ranks, Suits } from '$lib/game/types';
 import { gameState } from '$lib/stores/gamestate.svelte';
 import { isRoyal } from '$lib/game/utils';
+import { royalRefresh } from '$lib/game/rules';
 
 export function setup() {
 	gameState.draw.cards = shuffleDeck(generateDeck());
@@ -30,20 +31,7 @@ const dealCards = () => {
 			}
 			centerFilled++;
 		} else if (gameState.royals.cards.length == 0) {
-			const tempStack: Card[] = [];
-			while (gameState.royals.cards.length == 0) {
-				const tempCard = gameState.draw.cards.pop();
-				if (tempCard) {
-					if (isRoyal(tempCard)) {
-						card.isFaceUp = true;
-						tempCard.isPlayable = true;
-						gameState.royals.cards.push(tempCard);
-					} else {
-						tempStack.push(tempCard);
-					}
-				}
-			}
-			gameState.draw.cards = tempStack.concat(gameState.draw.cards);
+			royalRefresh();
 		} else {
 			return;
 		}

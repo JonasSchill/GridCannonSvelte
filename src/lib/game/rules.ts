@@ -1,5 +1,5 @@
-import { gameState } from '$lib/stores/gamestate.svelte';
-import { type CardStack, Ranks, StackTypes, Suits } from '$lib/game/types';
+import { borderToCenterAdjacency, centerToBorderAdjacency, gameState } from '$lib/stores/gamestate.svelte';
+import { type Card, type CardStack, Ranks, StackTypes } from '$lib/game/types';
 import { isRed, isRoyal } from '$lib/game/utils';
 
 export function clickCard(cardStack: CardStack) {
@@ -54,50 +54,53 @@ const playCard = (stack: CardStack) => {
 			updatePlayable();
 		}
 	}
-}
+	if (gameState.draw.cards.length === 0 && !won()) {
+		console.log('you lost');
+	}
+};
 
 const evaluateGridMove = (stack: CardStack) => {
-	switch(stack.id) {
+	switch (stack.id) {
 		case 'C0': {
-				attack('C1', 'C2', 'B4');
-				attack('C3', 'C6', 'B9');
+			attack('C1', 'C2', 'B4');
+			attack('C3', 'C6', 'B9');
 			break;
 		}
 		case 'C1': {
-				attack('C4', 'C7', 'B10');
+			attack('C4', 'C7', 'B10');
 			break;
 		}
 		case 'C2': {
-				attack('C5', 'C8', 'B11');
-				attack('C1', 'C0', 'B3');
+			attack('C5', 'C8', 'B11');
+			attack('C1', 'C0', 'B3');
 			break;
 		}
 		case 'C3': {
-				attack('C4', 'C5', 'B16');
+			attack('C4', 'C5', 'B16');
 			break;
 		}
 		case 'C5': {
-				attack('C4', 'C3', 'B5');
+			attack('C4', 'C3', 'B5');
 			break;
 		}
 		case 'C6': {
-				attack('C3', 'C0', 'B0');
-				attack('C7', 'C8', 'B8');
+			attack('C3', 'C0', 'B0');
+			attack('C7', 'C8', 'B8');
 			break;
 		}
 		case 'C7': {
-				attack('C4', 'C1', 'B1');
+			attack('C4', 'C1', 'B1');
 			break;
 		}
 		case 'C8': {
-				attack('C5', 'C2', 'B2');
-				attack('C7', 'C6', 'B7');
+			attack('C5', 'C2', 'B2');
+			attack('C7', 'C6', 'B7');
 			break;
 		}
 	}
-}
+};
 
-const attack = (aStack1ID: String, aStack2ID: String, targetStackId: String) => {
+const attack = (aStack1ID: string, aStack2ID: string, targetStackId: string) => {
 	const aStack1 = gameState.stacks.find((s) => s.id == aStack1ID);
 	const aStack2 = gameState.stacks.find((s) => s.id == aStack2ID);
 	const targetStack = gameState.stacks.find((s) => s.id == targetStackId);
@@ -145,10 +148,68 @@ const attack = (aStack1ID: String, aStack2ID: String, targetStackId: String) => 
 			}
 			if (attackValue >= targetCard.value) {
 				targetCard.isFaceUp = false;
+				if (won()) {
+					console.log('You won!');
+					return;
+				}
+				doRoyalRefresh();
 			}
 		}
 	}
+};
+
+const doRoyalRefresh = () => {
+	let livingRoyalCount = 0;
+	for (let i = 0; i < gameState.stacks.length; i++) {
+		const stack = gameState.stacks[i];
+		if (stack.type !== StackTypes.BORDER) {
+			continue;
+		}
+		if (stack && stack.cards.length > 0) {
+			const card = stack.cards[stack.cards.length - 1];
+			if (isRoyal(card) && card.isFaceUp) {
+				livingRoyalCount++;
+			}
+		}
+	}
+	if (livingRoyalCount === 0) {
+		royalRefresh();
+	}
+};
+
+export function royalRefresh() {
+	const tempStack: Card[] = [];
+	while (gameState.royals.cards.length == 0) {
+		const tempCard = gameState.draw.cards.pop();
+		if (tempCard) {
+			if (isRoyal(tempCard)) {
+				tempCard.isFaceUp = true;
+				tempCard.isPlayable = true;
+				gameState.royals.cards.push(tempCard);
+			} else {
+				tempStack.push(tempCard);
+			}
+		}
+	}
+	gameState.draw.cards = tempStack.concat(gameState.draw.cards);
 }
+
+const won = () => {
+	let deadRoyalCount = 0;
+	for (let i = 0; i < gameState.stacks.length; i++) {
+		const stack = gameState.stacks[i];
+		if (stack.type !== StackTypes.BORDER) {
+			continue;
+		}
+		if (stack && stack.cards.length > 0) {
+			const card = stack.cards[stack.cards.length - 1];
+			if (isRoyal(card) && !card.isFaceUp) {
+				deadRoyalCount++;
+			}
+		}
+	}
+	return deadRoyalCount == 12;
+};
 
 const deselect = () => {
 	if (gameState.selectedCard) {
@@ -156,7 +217,7 @@ const deselect = () => {
 		gameState.selectedCard = null;
 		gameState.selectedSource = null;
 	}
-}
+};
 
 const updatePlayable = () => {
 	if (gameState.selectedCard === null) {
@@ -175,31 +236,75 @@ const updatePlayable = () => {
 		gameState.selectedCard.isPlayable = false;
 		if (isRoyal(gameState.selectedCard)) {
 			// test code make all border slots playable
-			for (let i = 1; i < gameState.stacks.length; i++) {
+			let mostSimilarCard: Card|null = null;
+			let adjacentSlots:CardStack[] = [];
+			for (let i = 0; i < gameState.stacks.length; i++) {
 				const stack = gameState.stacks[i];
 				if (stack.type === StackTypes.BORDER) {
-					if (stack.cards.length == 0) {
-						stack.validDropLocation = true;
+					if (stack.cards.length === 0) {
+						const centerStack = gameState.stacks.find((s) => s.id == borderToCenterAdjacency[stack.id]);
+						if (centerStack) {
+							if ( centerStack.cards.length > 0 ) {
+								const contenderCard = centerStack.cards[centerStack.cards.length - 1];
+								if (!mostSimilarCard) {
+									mostSimilarCard = contenderCard;
+									for (let j = 0; j < centerToBorderAdjacency[centerStack.id].length; j++) {
+										const pushStack = gameState.stacks.find((s) => s.id == centerToBorderAdjacency[centerStack.id][j]);
+										if (pushStack) {
+											adjacentSlots.push(pushStack);
+										}
+									}
+								} else if (moreSimilar(contenderCard, mostSimilarCard, gameState.selectedCard) > 0) {
+									mostSimilarCard = contenderCard;
+									adjacentSlots = [];
+									for (let j = 0; j < centerToBorderAdjacency[centerStack.id].length; j++) {
+										const pushStack = gameState.stacks.find((s) => s.id == centerToBorderAdjacency[centerStack.id][j]);
+										if (pushStack) {
+											adjacentSlots.push(pushStack);
+										}
+									}
+								} else if (moreSimilar(contenderCard, mostSimilarCard, gameState.selectedCard) === 0) {
+									for (let j = 0; j < centerToBorderAdjacency[centerStack.id].length; j++) {
+										const pushStack = gameState.stacks.find((s) => s.id == centerToBorderAdjacency[centerStack.id][j]);
+										if (pushStack) {
+											adjacentSlots.push(pushStack);
+										}
+									}
+								}
+							} else {
+								for (let j = 0; j < centerToBorderAdjacency[centerStack.id].length; j++) {
+									const pushStack = gameState.stacks.find((s) => s.id == centerToBorderAdjacency[centerStack.id][j]);
+									if (pushStack) {
+										adjacentSlots.push(pushStack);
+									}
+								}
+							}
+						}
 					} else {
 						stack.validDropLocation = false;
 						stack.cards[stack.cards.length - 1].isPlayable = false;
 					}
 				}
 			}
+
+			for (let i = 0; i < adjacentSlots.length; i++) {
+				adjacentSlots[i].validDropLocation = adjacentSlots[i].cards.length === 0;
+			}
+
 			makeJokerStackUnplayable();
 			makeAceStackUnplayable();
 			makeCenterStacksAndCardsUnplayable();
 		} else if (gameState.selectedCard.rank == Ranks.JOKER) {
 			gameState.jokers.validDropLocation = true;
 			if (gameState.jokers.cards.length > 0) {
-				 gameState.jokers.cards[gameState.jokers.cards.length - 1].isPlayable = true;
+				gameState.jokers.cards[gameState.jokers.cards.length - 1].isPlayable = true;
 			}
 			makeAceStackUnplayable();
 			makeAllGridStacksAndCardsUnplayable();
 		} else if (gameState.selectedCard.rank == Ranks.ACE) {
 			gameState.aces.validDropLocation = true;
 			if (gameState.aces.cards.length > 0) {
-				 gameState.aces.cards[gameState.aces.cards.length - 1].isPlayable = true;
+				gameState.aces.cards[gameState.aces.cards.length - 1].isPlayable = true;
 			}
 			makeJokerStackUnplayable();
 			makeAllGridStacksAndCardsUnplayable();
@@ -225,18 +330,39 @@ const updatePlayable = () => {
 	}
 };
 
+const moreSimilar = (contender: Card, established: Card, target: Card) => {
+	// Prioritize suit similarity
+	if (established.suit === target.suit) {
+		if (contender.suit !== target.suit) return -1;
+		return contender.value - established.value;
+	} else if (contender.suit === target.suit) {
+		return 1;
+	}
+
+	// Next, check color similarity
+	if (isRed(established) === isRed(target)) {
+		if (isRed(contender) !== isRed(target)) return -1;
+		return contender.value - established.value;
+	} else if (isRed(contender) === isRed(target)) {
+		return 1;
+	}
+
+	// Finally, compare by value
+	return contender.value - established.value;
+}
+
+
 const makeAllGridStacksAndCardsUnplayable = () => {
 	for (let i = 1; i < gameState.stacks.length; i++) {
 		const stack = gameState.stacks[i];
-		if (stack.type === StackTypes.BORDER ||
-			stack.type === StackTypes.CENTER) {
+		if (stack.type === StackTypes.BORDER || stack.type === StackTypes.CENTER) {
 			stack.validDropLocation = false;
 			if (stack.cards.length !== 0) {
 				stack.cards[stack.cards.length - 1].isPlayable = false;
 			}
 		}
 	}
-}
+};
 
 const makeCenterStacksAndCardsUnplayable = () => {
 	for (let i = 1; i < gameState.stacks.length; i++) {
@@ -248,18 +374,18 @@ const makeCenterStacksAndCardsUnplayable = () => {
 			}
 		}
 	}
-}
+};
 
 const makeJokerStackUnplayable = () => {
 	gameState.jokers.validDropLocation = false;
 	if (gameState.jokers.cards.length > 0) {
-		 gameState.jokers.cards[gameState.jokers.cards.length - 1].isPlayable = false;
+		gameState.jokers.cards[gameState.jokers.cards.length - 1].isPlayable = false;
 	}
-}
+};
 
 const makeAceStackUnplayable = () => {
 	gameState.aces.validDropLocation = false;
 	if (gameState.aces.cards.length > 0) {
-		 gameState.aces.cards[gameState.aces.cards.length - 1].isPlayable = false;
+		gameState.aces.cards[gameState.aces.cards.length - 1].isPlayable = false;
 	}
-}
+};
