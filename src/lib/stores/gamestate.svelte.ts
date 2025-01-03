@@ -35,3 +35,21 @@ export const gameState = $state<GameState>({
 	selectedCard: null,
 	selectedSource: null
 });
+
+/*
+    B00 B01 B02
+B03 C00 C01 C02 B04
+B05 C03 C04 C05 B06
+B07 C06 C07 C08 B08
+    B09 B10 B11
+
+    C0 -> B4, B9
+    C1 -> B10
+    C2 -> B11, B3
+    C3 -> B6
+    C4
+    C5 -> B5
+    C6 -> B0, B8
+    C7 -> B1
+    C8 -> B2, B7
+ */

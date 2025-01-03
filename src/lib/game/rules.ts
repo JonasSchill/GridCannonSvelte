@@ -1,14 +1,11 @@
 import { gameState } from '$lib/stores/gamestate.svelte';
 import { type CardStack, Ranks, StackTypes, Suits } from '$lib/game/types';
-import { isRoyal } from '$lib/game/utils';
+import { isRed, isRoyal } from '$lib/game/utils';
 
 export function clickCard(cardStack: CardStack) {
 	if (cardStack.cards.length === 0) {
 		if (gameState.selectedCard && cardStack.validDropLocation) {
-			cardStack.cards.push(gameState.selectedCard);
-			gameState.selectedSource!.cards.pop();
-			deselect();
-			updatePlayable();
+			playCard(cardStack);
 		} else {
 			return;
 		}
@@ -40,11 +37,116 @@ export function clickCard(cardStack: CardStack) {
 	// clicked card is playable but something is already selected
 	// place down the selected card
 	if (card.isPlayable && gameState.selectedCard && gameState.selectedSource) {
-		gameState.selectedSource.cards.pop();
-		cardStack.cards.push(gameState.selectedCard);
-		deselect();
-		updatePlayable();
+		playCard(cardStack);
 		return;
+	}
+}
+
+const playCard = (stack: CardStack) => {
+	if (gameState.selectedSource) {
+		const card = gameState.selectedSource.cards.pop();
+		if (card) {
+			stack.cards.push(card);
+			deselect();
+			if (stack.type === StackTypes.CENTER) {
+				evaluateGridMove(stack);
+			}
+			updatePlayable();
+		}
+	}
+}
+
+const evaluateGridMove = (stack: CardStack) => {
+	switch(stack.id) {
+		case 'C0': {
+				attack('C1', 'C2', 'B4');
+				attack('C3', 'C6', 'B9');
+			break;
+		}
+		case 'C1': {
+				attack('C4', 'C7', 'B10');
+			break;
+		}
+		case 'C2': {
+				attack('C5', 'C8', 'B11');
+				attack('C1', 'C0', 'B3');
+			break;
+		}
+		case 'C3': {
+				attack('C4', 'C5', 'B16');
+			break;
+		}
+		case 'C5': {
+				attack('C4', 'C3', 'B5');
+			break;
+		}
+		case 'C6': {
+				attack('C3', 'C0', 'B0');
+				attack('C7', 'C8', 'B8');
+			break;
+		}
+		case 'C7': {
+				attack('C4', 'C1', 'B1');
+			break;
+		}
+		case 'C8': {
+				attack('C5', 'C2', 'B2');
+				attack('C7', 'C6', 'B7');
+			break;
+		}
+	}
+}
+
+const attack = (aStack1ID: String, aStack2ID: String, targetStackId: String) => {
+	const aStack1 = gameState.stacks.find((s) => s.id == aStack1ID);
+	const aStack2 = gameState.stacks.find((s) => s.id == aStack2ID);
+	const targetStack = gameState.stacks.find((s) => s.id == targetStackId);
+	if (aStack1 && aStack2 && targetStack) {
+		if (targetStack.cards.length === 0) {
+			return;
+		} else {
+			const targetCard = targetStack.cards[targetStack.cards.length - 1];
+			let attackValue = 0;
+			if (targetCard.rank === Ranks.JACK) {
+				if (aStack1.cards.length > 0) {
+					const aCard1 = aStack1.cards[aStack1.cards.length - 1];
+					attackValue += aCard1.value;
+				}
+				if (aStack2.cards.length > 0) {
+					const aCard2 = aStack2.cards[aStack2.cards.length - 1];
+					attackValue += aCard2.value;
+				}
+			} else if (targetCard.rank === Ranks.QUEEN) {
+				if (aStack1.cards.length > 0) {
+					const aCard1 = aStack1.cards[aStack1.cards.length - 1];
+					if (isRed(aCard1) === isRed(targetCard)) {
+						attackValue += aCard1.value;
+					}
+				}
+				if (aStack2.cards.length > 0) {
+					const aCard2 = aStack2.cards[aStack2.cards.length - 1];
+					if (isRed(aCard2) === isRed(targetCard)) {
+						attackValue += aCard2.value;
+					}
+				}
+			} else if (targetCard.rank === Ranks.KING) {
+				if (aStack1.cards.length > 0) {
+					const aCard1 = aStack1.cards[aStack1.cards.length - 1];
+					if (aCard1.suit === targetCard.suit) {
+						attackValue += aCard1.value;
+					}
+				}
+				if (aStack2.cards.length > 0) {
+					const aCard2 = aStack2.cards[aStack2.cards.length - 1];
+					if (aCard2.suit === targetCard.suit) {
+						attackValue += aCard2.value;
+					}
+				}
+			}
+			if (attackValue >= targetCard.value) {
+				targetCard.isFaceUp = false;
+			}
+		}
 	}
 }
 

@@ -17,6 +17,7 @@
 
 	function onclick() {
 		clickCard(cardStack);
+
 	}
 
 	function topCardClicked() {
