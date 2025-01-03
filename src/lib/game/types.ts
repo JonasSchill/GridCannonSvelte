@@ -23,6 +23,10 @@ export type GameState = {
 	royals: CardStack;
 	selectedCard: Card | null;
 	selectedSource: CardStack | null;
+	jokerActive: boolean;
+	aceActive: boolean;
+	gameOver: boolean;
+	gameOverMessage: string;
 }
 
 export enum StackTypes {

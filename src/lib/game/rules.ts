@@ -6,6 +6,7 @@ export function clickCard(cardStack: CardStack) {
 	if (cardStack.cards.length === 0) {
 		if (gameState.selectedCard && cardStack.validDropLocation) {
 			playCard(cardStack);
+			return;
 		} else {
 			return;
 		}
@@ -13,6 +14,30 @@ export function clickCard(cardStack: CardStack) {
 
 	const card = cardStack.cards[cardStack.cards.length - 1];
 	if (!card.isPlayable && !card.isSelected) return;
+
+	if (gameState.selectedCard === null && card.rank === Ranks.ACE && cardStack.type === StackTypes.ACES) {
+		if (card.isSelected) {
+			card.isSelected = false;
+			gameState.aceActive = false;
+		} else {
+			card.isSelected = true;
+			gameState.aceActive = true;
+		}
+		updatePlayable();
+		return;
+	}
+
+	if (gameState.selectedCard === null && card.rank === Ranks.JOKER && cardStack.type === StackTypes.JOKERS) {
+		if (card.isSelected) {
+			card.isSelected = false;
+			gameState.jokerActive = false;
+		} else {
+			card.isSelected = true;
+			gameState.jokerActive = true;
+		}
+		updatePlayable();
+		return;
+	}
 
 	// clicked card is selected already so unselect it
 	if (card.isSelected) {
@@ -30,6 +55,19 @@ export function clickCard(cardStack: CardStack) {
 		card.isFaceUp = true;
 		gameState.selectedCard = card;
 		gameState.selectedSource = cardStack;
+		if (gameState.aceActive) {
+			gameState.aceActive = false;
+			gameState.aces.cards.pop();
+			for (const card of cardStack.cards) {
+				card.isFaceUp = false;
+			}
+			gameState.draw.cards = cardStack.cards.concat(gameState.draw.cards);
+			cardStack.cards = [];
+			card.isSelected = false;
+			card.isPlayable = false;
+			gameState.selectedCard = null;
+			gameState.selectedSource = null;
+		}
 		updatePlayable();
 		return;
 	}
@@ -48,14 +86,19 @@ const playCard = (stack: CardStack) => {
 		if (card) {
 			stack.cards.push(card);
 			deselect();
+			if (gameState.jokerActive) {
+				gameState.jokerActive = false;
+				gameState.jokers.cards.pop();
+			}
 			if (stack.type === StackTypes.CENTER) {
 				evaluateGridMove(stack);
 			}
 			updatePlayable();
 		}
 	}
-	if (gameState.draw.cards.length === 0 && !won()) {
-		console.log('you lost');
+	if (gameState.draw.cards.length === 0 && !won() && !gameState.jokerActive && !gameState.aceActive && gameState.jokers.cards.length == 0 && gameState.aces.cards.length === 0) {
+		gameState.gameOverMessage = "You Lost!"
+		gameState.gameOver = true;
 	}
 };
 
@@ -149,7 +192,8 @@ const attack = (aStack1ID: string, aStack2ID: string, targetStackId: string) => 
 			if (attackValue >= targetCard.value) {
 				targetCard.isFaceUp = false;
 				if (won()) {
-					console.log('You won!');
+					gameState.gameOverMessage = "You Won! With a score of: " + (gameState.jokers.cards.length + gameState.aces.cards.length);
+					gameState.gameOver = true;
 					return;
 				}
 				doRoyalRefresh();
@@ -179,7 +223,7 @@ const doRoyalRefresh = () => {
 
 export function royalRefresh() {
 	const tempStack: Card[] = [];
-	while (gameState.royals.cards.length == 0) {
+	while (gameState.royals.cards.length == 0 && gameState.draw.cards.length > 0) {
 		const tempCard = gameState.draw.cards.pop();
 		if (tempCard) {
 			if (isRoyal(tempCard)) {
@@ -194,7 +238,7 @@ export function royalRefresh() {
 	gameState.draw.cards = tempStack.concat(gameState.draw.cards);
 }
 
-const won = () => {
+export function won() {
 	let deadRoyalCount = 0;
 	for (let i = 0; i < gameState.stacks.length; i++) {
 		const stack = gameState.stacks[i];
@@ -208,8 +252,8 @@ const won = () => {
 			}
 		}
 	}
-	return deadRoyalCount == 12;
-};
+	return deadRoyalCount >= 12;
+}
 
 const deselect = () => {
 	if (gameState.selectedCard) {
@@ -221,51 +265,105 @@ const deselect = () => {
 
 const updatePlayable = () => {
 	if (gameState.selectedCard === null) {
-		if (gameState.royals.cards.length > 0 && gameState.draw.cards.length > 0) {
-			// if there are royals make the top draw card not playable
-			gameState.draw.cards[gameState.draw.cards.length - 1].isPlayable = false;
-			gameState.royals.cards[gameState.royals.cards.length - 1].isPlayable = true;
-		} else if (gameState.draw.cards.length > 0) {
-			// if there are no royals make the top draw card playable
-			gameState.draw.cards[gameState.draw.cards.length - 1].isPlayable = true;
+		if (gameState.aceActive || gameState.jokerActive) {
+			if (gameState.draw.cards.length > 0) {
+				gameState.draw.cards[gameState.draw.cards.length - 1].isPlayable = false;
+			}
+			for (let i = 0; i < gameState.stacks.length; i++) {
+				const stack = gameState.stacks[i];
+				if (stack.type === StackTypes.CENTER) {
+					if (stack.cards.length > 0) {
+						stack.cards[stack.cards.length - 1].isPlayable = true;
+					}
+				} else if (stack.type === StackTypes.BORDER) {
+					stack.validDropLocation = false;
+					if (stack.cards.length > 0) {
+						stack.cards[stack.cards.length - 1].isPlayable = false;
+					}
+				}
+			}
+			if (gameState.aceActive) {
+				makeJokerStackUnplayable();
+			} else if (gameState.jokerActive) {
+				makeAceStackUnplayable();
+			}
+		} else {
+			if (gameState.royals.cards.length > 0) {
+				// if there are royals make the top draw card not playable
+				if (gameState.draw.cards.length > 0) {
+					gameState.draw.cards[gameState.draw.cards.length - 1].isPlayable = false;
+					gameState.royals.cards[gameState.royals.cards.length - 1].isPlayable = true;
+				}
+				makeAceStackUnplayable();
+				makeJokerStackUnplayable();
+			} else if (gameState.draw.cards.length > 0) {
+				// if there are no royals make the top draw card playable
+				gameState.draw.cards[gameState.draw.cards.length - 1].isPlayable = true;
+				if (gameState.aces.cards.length > 0) {
+					gameState.aces.cards[gameState.aces.cards.length - 1].isPlayable = true;
+				}
+				if (gameState.jokers.cards.length > 0) {
+					gameState.jokers.cards[gameState.jokers.cards.length - 1].isPlayable = true;
+				}
+			} else if (gameState.draw.cards.length  === 0) {
+				gameState.draw.validDropLocation = false;
+				if (gameState.aces.cards.length > 0) {
+					gameState.aces.cards[gameState.aces.cards.length - 1].isPlayable = true;
+				}
+				if (gameState.jokers.cards.length > 0) {
+					gameState.jokers.cards[gameState.jokers.cards.length - 1].isPlayable = true;
+				}
+			}
 		}
-		//ToDo: MAKE JOKERS PLAYABLE IF ANY
-		//ToDo: MAKE ACES PLAYABLE IF ANY
-		makeAllGridStacksAndCardsUnplayable();
+		if (!gameState.aceActive && !gameState.jokerActive) {
+			makeAllGridStacksAndCardsUnplayable();
+		}
 	} else {
 		gameState.selectedCard.isPlayable = false;
 		if (isRoyal(gameState.selectedCard)) {
 			// test code make all border slots playable
-			let mostSimilarCard: Card|null = null;
-			let adjacentSlots:CardStack[] = [];
+			let mostSimilarCard: Card | null = null;
+			let adjacentSlots: CardStack[] = [];
 			for (let i = 0; i < gameState.stacks.length; i++) {
 				const stack = gameState.stacks[i];
 				if (stack.type === StackTypes.BORDER) {
 					if (stack.cards.length === 0) {
-						const centerStack = gameState.stacks.find((s) => s.id == borderToCenterAdjacency[stack.id]);
+						const centerStack = gameState.stacks.find(
+							(s) => s.id == borderToCenterAdjacency[stack.id]
+						);
 						if (centerStack) {
-							if ( centerStack.cards.length > 0 ) {
+							if (centerStack.cards.length > 0) {
 								const contenderCard = centerStack.cards[centerStack.cards.length - 1];
 								if (!mostSimilarCard) {
 									mostSimilarCard = contenderCard;
 									for (let j = 0; j < centerToBorderAdjacency[centerStack.id].length; j++) {
-										const pushStack = gameState.stacks.find((s) => s.id == centerToBorderAdjacency[centerStack.id][j]);
+										const pushStack = gameState.stacks.find(
+											(s) => s.id == centerToBorderAdjacency[centerStack.id][j]
+										);
 										if (pushStack) {
 											adjacentSlots.push(pushStack);
 										}
 									}
-								} else if (moreSimilar(contenderCard, mostSimilarCard, gameState.selectedCard) > 0) {
+								} else if (
+									moreSimilar(contenderCard, mostSimilarCard, gameState.selectedCard) > 0
+								) {
 									mostSimilarCard = contenderCard;
 									adjacentSlots = [];
 									for (let j = 0; j < centerToBorderAdjacency[centerStack.id].length; j++) {
-										const pushStack = gameState.stacks.find((s) => s.id == centerToBorderAdjacency[centerStack.id][j]);
+										const pushStack = gameState.stacks.find(
+											(s) => s.id == centerToBorderAdjacency[centerStack.id][j]
+										);
 										if (pushStack) {
 											adjacentSlots.push(pushStack);
 										}
 									}
-								} else if (moreSimilar(contenderCard, mostSimilarCard, gameState.selectedCard) === 0) {
+								} else if (
+									moreSimilar(contenderCard, mostSimilarCard, gameState.selectedCard) === 0
+								) {
 									for (let j = 0; j < centerToBorderAdjacency[centerStack.id].length; j++) {
-										const pushStack = gameState.stacks.find((s) => s.id == centerToBorderAdjacency[centerStack.id][j]);
+										const pushStack = gameState.stacks.find(
+											(s) => s.id == centerToBorderAdjacency[centerStack.id][j]
+										);
 										if (pushStack) {
 											adjacentSlots.push(pushStack);
 										}
@@ -273,7 +371,9 @@ const updatePlayable = () => {
 								}
 							} else {
 								for (let j = 0; j < centerToBorderAdjacency[centerStack.id].length; j++) {
-									const pushStack = gameState.stacks.find((s) => s.id == centerToBorderAdjacency[centerStack.id][j]);
+									const pushStack = gameState.stacks.find(
+										(s) => s.id == centerToBorderAdjacency[centerStack.id][j]
+									);
 									if (pushStack) {
 										adjacentSlots.push(pushStack);
 									}
@@ -295,17 +395,13 @@ const updatePlayable = () => {
 			makeAceStackUnplayable();
 			makeCenterStacksAndCardsUnplayable();
 		} else if (gameState.selectedCard.rank == Ranks.JOKER) {
-			gameState.jokers.validDropLocation = true;
-			if (gameState.jokers.cards.length > 0) {
-				gameState.jokers.cards[gameState.jokers.cards.length - 1].isPlayable = true;
-			}
+			console.log("cleared for selected rank joker");
+			makeJokerStackPlayable();
 			makeAceStackUnplayable();
 			makeAllGridStacksAndCardsUnplayable();
 		} else if (gameState.selectedCard.rank == Ranks.ACE) {
-			gameState.aces.validDropLocation = true;
-			if (gameState.aces.cards.length > 0) {
-				gameState.aces.cards[gameState.aces.cards.length - 1].isPlayable = true;
-			}
+			console.log("cleared for selected rank ace");
+			makeAceStackPlayable();
 			makeJokerStackUnplayable();
 			makeAllGridStacksAndCardsUnplayable();
 		} else {
@@ -349,8 +445,7 @@ const moreSimilar = (contender: Card, established: Card, target: Card) => {
 
 	// Finally, compare by value
 	return contender.value - established.value;
-}
-
+};
 
 const makeAllGridStacksAndCardsUnplayable = () => {
 	for (let i = 1; i < gameState.stacks.length; i++) {
@@ -383,9 +478,23 @@ const makeJokerStackUnplayable = () => {
 	}
 };
 
+const makeJokerStackPlayable = () => {
+	gameState.jokers.validDropLocation = true;
+	if (gameState.jokers.cards.length > 0) {
+		gameState.jokers.cards[gameState.jokers.cards.length - 1].isPlayable = true;
+	}
+}
+
 const makeAceStackUnplayable = () => {
 	gameState.aces.validDropLocation = false;
 	if (gameState.aces.cards.length > 0) {
 		gameState.aces.cards[gameState.aces.cards.length - 1].isPlayable = false;
 	}
-};
+}
+
+const makeAceStackPlayable = () => {
+	gameState.aces.validDropLocation = true;
+	if (gameState.aces.cards.length > 0) {
+		gameState.aces.cards[gameState.aces.cards.length - 1].isPlayable = true;
+	}
+}

@@ -13,6 +13,7 @@
 	function onclick() {
 		resetGameState();
 	}
+
 </script>
 
 
@@ -36,6 +37,12 @@
 			</button>
 		</div>
 		<div class="game-container">
+			{#if gameState.gameOver}
+				<div class="overlay">
+					<h1>{gameState.gameOverMessage}</h1>
+					<button class="game-button" {onclick}>Play Again</button>
+				</div>
+			{/if}
 			<div class="side-panel" style={cardStyle}>
 				<CardStackComponent cardStack={gameState.draw} />
 				<CardStackComponent cardStack={gameState.royals} />
@@ -51,6 +58,21 @@
 
 
 <style>
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #EFE3C2;
+        color: #3E7B27;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+				z-index: 100;
+    }
 
     .game-button {
         /* Base styles */

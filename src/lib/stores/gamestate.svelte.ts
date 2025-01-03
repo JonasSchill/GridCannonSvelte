@@ -34,7 +34,11 @@ const INITIAL_STATE: GameState = {
 	aces: { id: 'aces', cards: [], type: StackTypes.ACES, validDropLocation: false },
 	royals: { id: 'royals', cards: [], type: StackTypes.ROYALS, validDropLocation: false },
 	selectedCard: null,
-	selectedSource: null
+	selectedSource: null,
+	jokerActive: false,
+	aceActive: false,
+	gameOver: false,
+	gameOverMessage: ""
 };
 
 export const gameState = $state<GameState>(structuredClone(INITIAL_STATE));
@@ -47,6 +51,10 @@ export const resetGameState = () => {
 	gameState.royals = structuredClone(INITIAL_STATE.royals);
 	gameState.selectedCard = null;
 	gameState.selectedSource = null;
+	gameState.jokerActive = false;
+	gameState.aceActive = false;
+	gameState.gameOver = false;
+	gameState.gameOverMessage = "";
 	setup();
 };
 
