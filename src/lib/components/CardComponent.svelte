@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { Suits } from '$lib/game/types'
 	import { config } from '$lib/stores/config.svelte';
-	import { clickCard } from '$lib/game/rules';
 	import { isRoyal } from '$lib/game/utils';
 
-	let { card, topCardClicked } = $props();
+	let { card, topCardClicked, topCardOver, topCardOut } = $props();
 
 	let cardDimensions = $derived({
 		padding: config.cardSize * config.cardPaddingRatio,
@@ -26,6 +25,14 @@
 	function onclick() {
 		topCardClicked();
 	}
+
+	function onmouseover() {
+		topCardOver();
+	}
+
+	function onmouseout() {
+		topCardOut();
+	}
 </script>
 
 <div
@@ -35,8 +42,11 @@
 	class:facedown={!card.isFaceUp}
 	class:royal={isRoyal(card)}
 	class:red={isRed}
+	class:armoured={card.isArmoured}
 	style={cardStyle}
 	{onclick}
+	{onmouseover}
+	{onmouseout}
 >
 	{#if card.isFaceUp}
 	<div class="card-corner top-left">
@@ -86,6 +96,11 @@
         border-color: black;
         border-width: 2px;
     }
+
+		.card.armoured {
+        border-color: Silver;
+        border-width: 5px;
+		}
 
 		.card.playable {
 				border-color: red;

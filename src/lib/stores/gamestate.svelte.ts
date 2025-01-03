@@ -38,7 +38,8 @@ const INITIAL_STATE: GameState = {
 	jokerActive: false,
 	aceActive: false,
 	gameOver: false,
-	gameOverMessage: ""
+	gameOverMessage: "",
+	hoveredStack: null
 };
 
 export const gameState = $state<GameState>(structuredClone(INITIAL_STATE));
@@ -55,6 +56,7 @@ export const resetGameState = () => {
 	gameState.aceActive = false;
 	gameState.gameOver = false;
 	gameState.gameOverMessage = "";
+	gameState.hoveredStack = null;
 	setup();
 };
 

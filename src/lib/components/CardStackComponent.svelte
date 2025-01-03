@@ -3,6 +3,7 @@
 	import { config } from '$lib/stores/config.svelte';
 	import { StackTypes } from '$lib/game/types';
 	import { clickCard } from '$lib/game/rules';
+	import { gameState } from '$lib/stores/gamestate.svelte';
 
 	let { cardStack } = $props();
 
@@ -23,6 +24,18 @@
 	function topCardClicked() {
 		clickCard(cardStack);
 	}
+
+	function topCardOver() {
+		if (cardStack.type !== StackTypes.DRAW) {
+			gameState.hoveredStack = cardStack;
+		}
+	}
+
+	function topCardOut() {
+		if (gameState.hoveredStack == cardStack) {
+			gameState.hoveredStack = null;
+		}
+	}
 </script>
 
 <div class="card-stack"
@@ -32,13 +45,14 @@
 		 style={stackStyle}
 >
 	{#if !isEmpty}
-			<CardComponent card={topCard} {topCardClicked} />
+			<CardComponent card={topCard} {topCardClicked} {topCardOver} {topCardOut}/>
 	{:else}
 		<div class="empty-card-placeholder"
 				 class:valid={cardStack.validDropLocation}
-				 {onclick}>
+				 {onclick}
+				>
 			{#if cardStack.type}
-				<span class="stack-label">{cardStack.type}</span>
+				<span class="stack-label" style="color: #3E7B27;">{cardStack.type}</span>
 			{/if}
 		</div>
 	{/if}

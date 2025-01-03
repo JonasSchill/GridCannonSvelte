@@ -30,7 +30,7 @@ const dealCards = () => {
 				stack.cards.push(gameState.draw.cards.pop()!);
 			}
 			centerFilled++;
-		} else if (gameState.royals.cards.length == 0) {
+		} else if (gameState.royals.cards.length === 0) {
 			royalRefresh();
 		} else {
 			return;
@@ -54,7 +54,8 @@ const generateDeck = () => {
 						rank,
 						isSelected: false,
 						isFaceUp: false,
-						isPlayable: false
+						isPlayable: false,
+						isArmoured: false
 					});
 				}
 			});
@@ -67,7 +68,8 @@ const generateDeck = () => {
 		rank: Ranks.JOKER,
 		isSelected: false,
 		isFaceUp: false,
-		isPlayable: false
+		isPlayable: false,
+		isArmoured: false
 	});
 	deck.push({
 		id: `${Suits.JOKER}-${Ranks.JOKER}-2`,
@@ -76,7 +78,8 @@ const generateDeck = () => {
 		rank: Ranks.JOKER,
 		isSelected: false,
 		isFaceUp: false,
-		isPlayable: false
+		isPlayable: false,
+		isArmoured: false
 	});
 	return deck;
 };

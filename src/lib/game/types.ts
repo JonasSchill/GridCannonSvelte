@@ -6,6 +6,7 @@ export type Card = {
 	isSelected: boolean;
 	isFaceUp: boolean;
 	isPlayable: boolean;
+	isArmoured: boolean;
 }
 
 export type CardStack = {
@@ -27,6 +28,7 @@ export type GameState = {
 	aceActive: boolean;
 	gameOver: boolean;
 	gameOverMessage: string;
+	hoveredStack: CardStack | null;
 }
 
 export enum StackTypes {
